@@ -1,53 +1,73 @@
-import React, { useCallback, useEffect } from 'react'
+import React from 'react'
 import { useState, useRef } from 'react';
 import './Todo.css';
 
 const Todo = () => {
-       const [task, setTask] = useState("");
+  const [task, setTask] = useState("");
   const [tasks, setTasks] = useState([]);
   const inputRef = useRef(null);
-  const timeoutRef = useRef(null);
 
+  // Helper function to create a new task object
+  const createTask = (text) => ({
+    text: text.trim(),
+    done: false,
+    isEditing: false,
+  });
 
-  const handleChange = (e) =>{
-    setTask(e.target.value);
-  } 
+  // Handle input change
+  const handleTaskInputChange = (event) => {
+    setTask(event.target.value);
+  };
 
+  // Add a new task
   const addTask = () => {
-    if (task.trim()) {
-      setTasks([...tasks, { text: task, done: false, isEditing: false }]);
+    const trimmedTask = task.trim();
+    if (trimmedTask) {
+      setTasks((prevTasks) => [...prevTasks, createTask(trimmedTask)]);
       setTask("");
-      inputRef.current.focus();
+      inputRef.current?.focus();
     }
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
+  // Handle Enter key press
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
       addTask();
     }
   };
 
-  const handleDone = (index) => {
-    const updated = [...tasks];
-    updated[index].done = !updated[index].done;
-    setTasks(updated);
+  // Toggle task completion status
+  const toggleTaskCompletion = (index) => {
+    setTasks((prevTasks) =>
+      prevTasks.map((task, i) =>
+        i === index ? { ...task, done: !task.done } : task
+      )
+    );
   };
 
-  const handleDelete = (index) => {
-    setTasks(tasks.filter((_, i) => i !== index));
+  // Delete a task
+  const deleteTask = (index) => {
+    setTasks((prevTasks) => prevTasks.filter((_, i) => i !== index));
   };
 
-  const handleEditToggle = (index) => {
-    const updated = [...tasks];
-    updated[index].isEditing = !updated[index].isEditing;
-    setTasks(updated);
+  // Toggle edit mode for a task
+  const toggleEditMode = (index) => {
+    setTasks((prevTasks) =>
+      prevTasks.map((task, i) =>
+        i === index ? { ...task, isEditing: !task.isEditing } : task
+      )
+    );
   };
 
-  const handleEditChange = (e, index) => {
-    const updated = [...tasks];
-    updated[index].text = e.target.value;
-    setTasks(updated);
+  // Handle edit input change
+  const handleEditInputChange = (event, index) => {
+    const newText = event.target.value;
+    setTasks((prevTasks) =>
+      prevTasks.map((task, i) =>
+        i === index ? { ...task, text: newText } : task
+      )
+    );
   };
 
 
@@ -65,7 +85,7 @@ const Todo = () => {
             ref={inputRef}
             type='text'
             value={task}
-            onChange={handleChange}
+            onChange={handleTaskInputChange}
             onKeyDown={handleKeyDown}
             placeholder='Add a new task...'
           />
@@ -86,12 +106,12 @@ const Todo = () => {
                     <input
                       type="text"
                       value={t.text}
-                      onChange={(e) => handleEditChange(e, index)}
+                      onChange={(e) => handleEditInputChange(e, index)}
                       autoFocus
                     />
                     <button 
                       className='btn-save'
-                      onClick={() => handleEditToggle(index)}
+                      onClick={() => toggleEditMode(index)}
                     >
                       Save
                     </button>
@@ -106,19 +126,19 @@ const Todo = () => {
                     <div className='task-actions'>
                       <button 
                         className='btn-edit'
-                        onClick={() => handleEditToggle(index)}
+                        onClick={() => toggleEditMode(index)}
                       >
                         Edit
                       </button>
                       <button 
                         className={`btn-done ${t.done ? 'undone' : ''}`}
-                        onClick={() => handleDone(index)}
+                        onClick={() => toggleTaskCompletion(index)}
                       >
                         {t.done ? 'Undo' : 'Done'}
                       </button>
                       <button 
                         className='btn-delete'
-                        onClick={() => handleDelete(index)}
+                        onClick={() => deleteTask(index)}
                       >
                         Delete
                       </button>
